@@ -1,0 +1,8 @@
+[default]
+    data_path='data'
+    output_path='data/outputs'
+    embeddings_path='data/embeddings'
+    spacy_annotator_model='en_core_web_sm'
+    transformer_annotator_model='models/distill_bert/model'
+    transformer_annotator_labels = '{"0": "supertype", "1": "differentia_quality", "2": "O", "3": "differentia_event", "4": "accessory_determiner", "5": "origin_location", "6": "associated_fact", "7": "event_location", "8": "purpose", "9": "quality_modifier", "10": "accessory_quality", "11": "event_time"}'
+    transformer_annotator_max_len = 128
