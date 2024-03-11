@@ -6,6 +6,8 @@ Natural language definitions possess a recursive, self-explanatory semantic stru
 
 - Video presentation: https://youtu.be/cu8AcRFZ-3w?si=mMEHm7qNTuTKmCxU
 
+#
+
 ![Image description](approach.png)
 
 # Reproducibility
