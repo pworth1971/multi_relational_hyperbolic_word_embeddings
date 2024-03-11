@@ -1,8 +1,3 @@
-# Multi-Relational Hyperbolic Embeddings from Natural Language Definitions
-
-Data and semantic roles tagger: https://drive.google.com/drive/folders/112yLy-fUJr4RPhRZqjJgTOxRQrtx-Aqj?usp=sharing
-
-
 # Multi-Relational Hyperbolic Word Embeddings from Natural Language Definitions (EACL 2024 - Main Track)
 
 Natural language definitions possess a recursive, self-explanatory semantic structure that can support representation learning methods able to preserve explicit conceptual relations and constraints in the latent space. This paper presents a multi-relational model that explicitly leverages such a structure to derive word embeddings from definitions. By automatically extracting the relations linking defined and defining terms from dictionaries, we demonstrate how the problem of learning word embeddings can be formalised via a translational framework in Hyperbolic space and used as a proxy to capture the global semantic structure of definitions. An extensive empirical analysis demonstrates that the framework can help imposing the desired structural constraints while preserving the semantic mapping required for controllable and interpretable traversal. Moreover, the experiments reveal the superiority of the Hyperbolic word embeddings over the Euclidean counterparts and demonstrate that the multi-relational approach can obtain competitive results when compared to state-of-the-art neural models, with the advantage of being intrinsically more efficient and interpretable.
@@ -21,11 +16,11 @@ The code for training the multi-relational embeddings is adapted from the [Multi
 
 To train the euclidean embeddings, run the following command:
 
-`CUDA_VISIBLE_DEVICES=0 python /idiap/temp/mvalentino/definitions_learning/multi_relational_training.py --model euclidean --dataset cpae --num_iterations 300 --nneg 50 --batch_size 128 --lr 50 --dim 300`
+`CUDA_VISIBLE_DEVICES=0 python ./multi_relational_training.py --model euclidean --dataset cpae --num_iterations 300 --nneg 50 --batch_size 128 --lr 50 --dim 300`
 
 To train the hyperbolic embeddings, run the following command:
 
-`CUDA_VISIBLE_DEVICES=0 python /idiap/temp/mvalentino/definitions_learning/multi_relational_training.py --model euclidean --dataset cpae --num_iterations 300 --nneg 50 --batch_size 128 --lr 50 --dim 300`
+`CUDA_VISIBLE_DEVICES=0 python ./multi_relational_training.py --model poincare --dataset cpae --num_iterations 300 --nneg 50 --batch_size 128 --lr 50 --dim 300`
 
 **Evaluation:** 
 
