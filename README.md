@@ -39,7 +39,7 @@ Alternatively, you can access the model and the dataset adopted for training the
 The full set of automatically annotated definitions and the resulting multi-relational triples for training the embeddings are available in `./data/*`
 
 ## Reference
-We hope you find this repository useful. If you use SCAR in your work, please consider citing our paper!
+If you find this repository useful, please consider citing our paper!
 
 ```
 @misc{valentino2024multirelational,
