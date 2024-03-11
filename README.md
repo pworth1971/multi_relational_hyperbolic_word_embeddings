@@ -8,7 +8,7 @@ Natural language definitions possess a recursive, self-explanatory semantic stru
 
 Welcome! :) 
 
-In this repository, you can find the code to reproduce the results presented in the [paper](https://arxiv.org/abs/2305.07303).
+In this repository, you can find the code to reproduce the results presented in our EACL 2024 [paper](https://arxiv.org/abs/2305.07303).
 
 The code for training the multi-relational embeddings is adapted from the [Multi-relational Poincaré Graph Embeddings](https://github.com/ibalazevic/multirelational-poincare) repository.
 
