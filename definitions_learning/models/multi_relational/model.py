@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from definitions_learning.models.multi_relational.utils import *
-from web.evaluate import poincare_distance
+#from web.evaluate import poincare_distance
 
 
 class MuRP(torch.nn.Module):
