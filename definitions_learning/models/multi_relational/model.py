@@ -4,8 +4,9 @@ from torch import Tensor
 from definitions_learning.models.multi_relational.utils import *
 #from web.evaluate import poincare_distance
 
-#
-# pjw:
+
+# ----------------------------------------------------------------------------------
+# pjw updates:
 # code to support Apple silicon which includes the updated device 
 # type and the conversion from float64 (double) to float32
 #
@@ -17,21 +18,43 @@ from definitions_learning.models.multi_relational.utils import *
 # is used to represent hierarchical relationships in a more compact space 
 # compared to Euclidean embeddings.
 #
+# modificatins to accept device (CPU, MPS or CUDA) as a parameter to
+# class upon instantiation, for both classes, affecting all methods
+#
+# -----------------------------------------------------------------------------------
 class MuRP(torch.nn.Module):
     def __init__(self, d, dim):
         super(MuRP, self).__init__()
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-        self.Eh = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(device)
-        self.Eh.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.float32, device=device))
-        self.rvh = torch.nn.Embedding(len(d.relations), dim, padding_idx=0).to(device)
-        self.rvh.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.float32, device=device))
-        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), dim)), dtype=torch.float32, requires_grad=True, device=device))
-        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
-        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
+        
+        # set runtime device (Chip Set)
+        if torch.backends.cuda.is_built():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
+
+        print("MuRP self.device: ", self.device)
+
+        #torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        #device = torch.device(device)           # set runtime device (Chip Set)
+    
+        self.Eh = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(self.device)
+        self.Eh.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.float32, device=self.device))
+        self.rvh = torch.nn.Embedding(len(d.relations), dim, padding_idx=0).to(self.device)
+        self.rvh.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.float32, device=self.device))
+        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), dim)), dtype=torch.float32, requires_grad=True, device=self.device))
+        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=self.device))
+        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=self.device))
         self.loss = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, u_idx, r_idx, v_idx):
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")  
+        device = torch.device(self.device)           # set runtime device (Chip Set)  
+        
         u = self.Eh.weight[u_idx].to(device)
         v = self.Eh.weight[v_idx].to(device)
         Ru = self.Wu[r_idx].to(device)
@@ -71,7 +94,10 @@ class MuRP(torch.nn.Module):
         return -sqdist + self.bs[u_idx] + self.bo[v_idx]
 
     def one_shot_encoding(self, v_idx, r_idx):
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        device = torch.device(self.device)           # set runtme device (Chip Set)
+        
         v = self.Eh.weight[v_idx].to(device)
         Ru = self.Wu[r_idx].to(device)
         rvh = self.rvh.weight[r_idx].to(device)
@@ -92,7 +118,10 @@ class MuRP(torch.nn.Module):
         return v_m
 
     def one_shot_encoding_avg(self, v_idx):
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        device = torch.device(self.device)
+        
         v = self.Eh.weight[v_idx].to(device)
         return torch.mean(v,1)
     
@@ -112,20 +141,36 @@ class MuRP(torch.nn.Module):
 class MuRE(torch.nn.Module):
     def __init__(self, d, dim):
         super(MuRE, self).__init__()
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-        self.E = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(device)
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        #device = torch.device(device)           # set runtime device (Chip Set)
+        
+        # set runtime device (Chip Set)
+        if torch.backends.cuda.is_built():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
+
+        print("MuRE self.device:", self.device)
+
+        self.E = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(self.device)
         self.E.weight.data = self.E.weight.data.float()
-        self.E.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.float32, device=device))
-        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), dim)), dtype=torch.float32, requires_grad=True, device=device))
-        self.rv = torch.nn.Embedding(len(d.relations), dim, padding_idx=0).to(device)
+        self.E.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.float32, device=self.device))
+        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), dim)), dtype=torch.float32, requires_grad=True, device=self.device))
+        self.rv = torch.nn.Embedding(len(d.relations), dim, padding_idx=0).to(self.device)
         self.rv.weight.data = self.rv.weight.data.float()
-        self.rv.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.float32, device=device))
-        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
-        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
+        self.rv.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.float32, device=self.device))
+        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=self.device))
+        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=self.device))
         self.loss = torch.nn.BCEWithLogitsLoss()
        
     def forward(self, u_idx, r_idx, v_idx):
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        device = torch.device(self.device)                   # set runtime device (Chip Set)
+        
         u = self.E.weight[u_idx].to(device)
         v = self.E.weight[v_idx].to(device)
         Ru = self.Wu[r_idx].to(device)
@@ -137,7 +182,10 @@ class MuRE(torch.nn.Module):
         return -sqdist + self.bs[u_idx] + self.bo[v_idx]
 
     def one_shot_encoding(self, v_idx, r_idx):
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        device = torch.device(self.device)                   # set runtime device (Chip Set)
+        
         v = self.E.weight[v_idx].to(device)
         Ru = self.Wu[r_idx].to(device)
         rv = self.rv.weight[r_idx].to(device)
@@ -147,7 +195,10 @@ class MuRE(torch.nn.Module):
         return u_W
 
     def one_shot_encoding_avg(self, v_idx):
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
+        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        device = torch.device(self.device)                   # set runtime device (Chip Set)
+        
         v = self.E.weight[v_idx].to(device)
         # return the average v vector from all the terms in the definition
         return torch.mean(v, 1)
