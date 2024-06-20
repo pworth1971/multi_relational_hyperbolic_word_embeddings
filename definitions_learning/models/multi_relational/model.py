@@ -4,25 +4,38 @@ from torch import Tensor
 from definitions_learning.models.multi_relational.utils import *
 #from web.evaluate import poincare_distance
 
+#
+# pjw:
+# code to support Apple silicon which includes the updated device 
+# type and the conversion from float64 (double) to float32
+#
 
+#
+# The MuRP (Multi-relational Poincaré) class is a PyTorch neural network 
+# model designed for multi-relational learning tasks, specifically embedding 
+# entities and relations in a hyperbolic space (Poincaré ball model). This model 
+# is used to represent hierarchical relationships in a more compact space 
+# compared to Euclidean embeddings.
+#
 class MuRP(torch.nn.Module):
     def __init__(self, d, dim):
         super(MuRP, self).__init__()
-        self.Eh = torch.nn.Embedding(len(d.entities), dim, padding_idx=0)
-        self.Eh.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.double, device="cuda"))
-        self.rvh = torch.nn.Embedding(len(d.relations), dim, padding_idx=0)
-        self.rvh.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.double, device="cuda"))
-        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), 
-                                        dim)), dtype=torch.double, requires_grad=True, device="cuda"))
-        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.double, requires_grad=True, device="cuda"))
-        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.double, requires_grad=True, device="cuda"))
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        self.Eh = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(device)
+        self.Eh.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.float32, device=device))
+        self.rvh = torch.nn.Embedding(len(d.relations), dim, padding_idx=0).to(device)
+        self.rvh.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.float32, device=device))
+        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), dim)), dtype=torch.float32, requires_grad=True, device=device))
+        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
+        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
         self.loss = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, u_idx, r_idx, v_idx):
-        u = self.Eh.weight[u_idx]
-        v = self.Eh.weight[v_idx]
-        Ru = self.Wu[r_idx]
-        rvh = self.rvh.weight[r_idx]
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        u = self.Eh.weight[u_idx].to(device)
+        v = self.Eh.weight[v_idx].to(device)
+        Ru = self.Wu[r_idx].to(device)
+        rvh = self.rvh.weight[r_idx].to(device)
 
         eps = 1e-5
         u_nrm = torch.linalg.vector_norm(u, 2, dim=-1, keepdim=True)
@@ -58,9 +71,10 @@ class MuRP(torch.nn.Module):
         return -sqdist + self.bs[u_idx] + self.bo[v_idx]
 
     def one_shot_encoding(self, v_idx, r_idx):
-        v = self.Eh.weight[v_idx]
-        Ru = self.Wu[r_idx]
-        rvh = self.rvh.weight[r_idx]
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        v = self.Eh.weight[v_idx].to(device)
+        Ru = self.Wu[r_idx].to(device)
+        rvh = self.rvh.weight[r_idx].to(device)
 
         eps = 1e-5
         v_nrm = torch.linalg.vector_norm(v, 2, dim=-1, keepdim=True)
@@ -73,53 +87,67 @@ class MuRP(torch.nn.Module):
         v = (v/v_nrm_e) * v_nrm_msk + v * torch.logical_not(v_nrm_msk)
         rvh = (rvh/rvh_nrm_e) * rvh_nrm_msk + rvh * torch.logical_not(rvh_nrm_msk)
 
-        # We want u_m to be as close as possible to v after applying a relation-specific transformation.
         v_m = p_sum(torch.mean(v,1), torch.mean(rvh,1))
 
         return v_m
 
     def one_shot_encoding_avg(self, v_idx):
-        v = self.Eh.weight[v_idx]
-        # return the average v vector from all the terms in the definition
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        v = self.Eh.weight[v_idx].to(device)
         return torch.mean(v,1)
+    
 
+#
+# also updated for MPS (Apple silicon) support
+#
+# The MuRE class is a PyTorch neural network model designed for multi-relational 
+# learning tasks, specifically for embedding entities and relations in a Euclidean 
+# space. Here's a detailed breakdown of what the MuRE class does:
+# 
+# The MuRE model maps entities and relations to a Euclidean space and computes 
+# scores for triples (subject, relation, object) based on their embeddings. It uses these 
+# scores to learn and evaluate relationships in a knowledge graph or similar 
+# relational data structure.
+#   
 class MuRE(torch.nn.Module):
     def __init__(self, d, dim):
         super(MuRE, self).__init__()
-        self.E = torch.nn.Embedding(len(d.entities), dim, padding_idx=0)
-        self.E.weight.data = self.E.weight.data.double()
-        self.E.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.double, device="cuda"))
-        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), 
-                                        dim)), dtype=torch.double, requires_grad=True, device="cuda"))
-        self.rv = torch.nn.Embedding(len(d.relations), dim, padding_idx=0)
-        self.rv.weight.data = self.rv.weight.data.double()
-        self.rv.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.double, device="cuda"))
-        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.double, requires_grad=True, device="cuda"))
-        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.double, requires_grad=True, device="cuda"))
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        self.E = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(device)
+        self.E.weight.data = self.E.weight.data.float()
+        self.E.weight.data = (1e-3 * torch.randn((len(d.entities), dim), dtype=torch.float32, device=device))
+        self.Wu = torch.nn.Parameter(torch.tensor(np.random.uniform(-1, 1, (len(d.relations), dim)), dtype=torch.float32, requires_grad=True, device=device))
+        self.rv = torch.nn.Embedding(len(d.relations), dim, padding_idx=0).to(device)
+        self.rv.weight.data = self.rv.weight.data.float()
+        self.rv.weight.data = (1e-3 * torch.randn((len(d.relations), dim), dtype=torch.float32, device=device))
+        self.bs = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
+        self.bo = torch.nn.Parameter(torch.zeros(len(d.entities), dtype=torch.float32, requires_grad=True, device=device))
         self.loss = torch.nn.BCEWithLogitsLoss()
        
     def forward(self, u_idx, r_idx, v_idx):
-        u = self.E.weight[u_idx]
-        v = self.E.weight[v_idx]
-        Ru = self.Wu[r_idx]
-        rv = self.rv.weight[r_idx]
-        u_size = u.size()
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        u = self.E.weight[u_idx].to(device)
+        v = self.E.weight[v_idx].to(device)
+        Ru = self.Wu[r_idx].to(device)
+        rv = self.rv.weight[r_idx].to(device)
         
         u_W = u * Ru
 
-        sqdist = torch.sum(torch.pow(u_W - (v+rv), 2), dim=-1)
-        return -sqdist + self.bs[u_idx] + self.bo[v_idx] 
+        sqdist = torch.sum(torch.pow(u_W - (v + rv), 2), dim=-1)
+        return -sqdist + self.bs[u_idx] + self.bo[v_idx]
 
     def one_shot_encoding(self, v_idx, r_idx):
-        v = self.E.weight[v_idx]
-        Ru = self.Wu[r_idx]
-        rv = self.rv.weight[r_idx]
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        v = self.E.weight[v_idx].to(device)
+        Ru = self.Wu[r_idx].to(device)
+        rv = self.rv.weight[r_idx].to(device)
         
-        u_W = torch.mean(v,1) + torch.mean(rv,1)
+        u_W = torch.mean(v, 1) + torch.mean(rv, 1)
         
-        return  u_W
+        return u_W
 
     def one_shot_encoding_avg(self, v_idx):
-        v = self.E.weight[v_idx]
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        v = self.E.weight[v_idx].to(device)
         # return the average v vector from all the terms in the definition
-        return torch.mean(v,1)
+        return torch.mean(v, 1)

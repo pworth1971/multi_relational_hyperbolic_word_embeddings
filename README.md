@@ -16,6 +16,8 @@ In this repository, you can find the code to reproduce the results presented in 
 
 The code for training the multi-relational embeddings is adapted from the [Multi-relational Poincaré Graph Embeddings](https://github.com/ibalazevic/multirelational-poincare) repository.
 
+
+
 **Training Multi-Relational Word Embeddings:**
 
 To train the euclidean embeddings, run the following command:
@@ -26,13 +28,20 @@ To train the hyperbolic embeddings, run the following command:
 
 `CUDA_VISIBLE_DEVICES=0 python ./multi_relational_training.py --model poincare --dataset cpae --num_iterations 300 --nneg 50 --batch_size 128 --lr 50 --dim 300`
 
+
+
 **Evaluation:** 
 
 Once trained, the embeddings can be evaluated running `./evaluate_similarity.py` and `./evaluate_similarity_poincare.py`.
 
+
+
+
 **Baselines:** 
 
 The script `./sentence_bert_baseline.py` contains the code to evaluate the [Sentence-Tansformer](https://www.sbert.net/docs/pretrained_models.html) models.  
+
+
 
 **Definition Semantic Roles:** 
 
@@ -41,6 +50,8 @@ The pre-trained distilbert annotator used in our work can be downloaded via `./m
 Alternatively, you can access the model and the dataset adopted for training the semantic annotator [here](https://drive.google.com/drive/folders/12nJJHo7ryS6gVT-ukE-BsuHvAqPLUh3S).
 
 The full set of automatically annotated definitions and the resulting multi-relational triples for training the embeddings are available in `./data/*`
+
+
 
 ## Reference
 If you find this repository useful, please consider citing our paper!

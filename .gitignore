@@ -161,14 +161,8 @@ cython_debug/
 
 # PJW_ADDs
 # embeddings and binaries
+data/outputs/.DS_Store
 data/.DS_Store
-data/outputs/embeddings/best_model_dict_poincare_300_cpae
-data/outputs/embeddings/model_dict_poincare_300_cpae
-data/outputs/embeddings/model_dict_poincare_300_cpae
-data/outputs/models/best_model_checkpoint_poincare_300_cpae.pt
-data/outputs/models/best_model_checkpoint_poincare_300_cpae.pt
-data/outputs/embeddings/best_model_dict_poincare_300_cpae
-data/outputs/models/best_model_checkpoint_poincare_300_cpae.pt
-annotator/distill_bert.zip
-annotator/model/pytorch_model.bin
-data/outputs/embeddings/best_model_dict_poincare_300_cpae
+models/.DS_Store
+models/distill_bert/.DS_Store
+models/distill_bert/model/pytorch_model.bin
