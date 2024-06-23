@@ -167,3 +167,4 @@ models/.DS_Store
 models/distill_bert/.DS_Store
 models/distill_bert/model/pytorch_model.bin
 data/outputs/
+.run.cuda.out.swp

@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import pycuda.driver as cuda
 from torch import Tensor
 from definitions_learning.models.multi_relational.utils import *
 #from web.evaluate import poincare_distance
@@ -24,20 +25,26 @@ from definitions_learning.models.multi_relational.utils import *
 # -----------------------------------------------------------------------------------
 class MuRP(torch.nn.Module):
     def __init__(self, d, dim):
+
         super(MuRP, self).__init__()
         
+        print()
+        print("Setting up GPU parallelism...")
+        cuda.init()
+        print("Number of GPUs:", cuda.Device.count())
+
         # set runtime device (Chip Set)
-        if torch.backends.cuda.is_built():
+        if torch.cuda.is_available():
             self.device = "cuda"
         elif torch.backends.mps.is_available():
             self.device = "mps"
         else:
             self.device = "cpu"
 
-        print("MuRP self.device: ", self.device)
+        print("MuRP::device:", self.device)
+        print()
 
         #torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
         #device = torch.device(device)           # set runtime device (Chip Set)
     
@@ -52,6 +59,8 @@ class MuRP(torch.nn.Module):
 
     def forward(self, u_idx, r_idx, v_idx):
         
+        #print("MuRP::forward(): self.device: ", self.device)
+
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")  
         device = torch.device(self.device)           # set runtime device (Chip Set)  
         
@@ -95,7 +104,10 @@ class MuRP(torch.nn.Module):
 
     def one_shot_encoding(self, v_idx, r_idx):
         
+        print("MuRP::one_shot_encoding(): self.device: ", self.device)
+
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        
         device = torch.device(self.device)           # set runtme device (Chip Set)
         
         v = self.Eh.weight[v_idx].to(device)
@@ -119,10 +131,14 @@ class MuRP(torch.nn.Module):
 
     def one_shot_encoding_avg(self, v_idx):
         
+        print("MuRP::one_shot_encoding_avg(): self.device: ", self.device)
+
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
         device = torch.device(self.device)
         
         v = self.Eh.weight[v_idx].to(device)
+
         return torch.mean(v,1)
     
 
@@ -153,7 +169,7 @@ class MuRE(torch.nn.Module):
         else:
             self.device = "cpu"
 
-        print("MuRE self.device:", self.device)
+        print("MuRE::device:", self.device)
 
         self.E = torch.nn.Embedding(len(d.entities), dim, padding_idx=0).to(self.device)
         self.E.weight.data = self.E.weight.data.float()
@@ -168,7 +184,10 @@ class MuRE(torch.nn.Module):
        
     def forward(self, u_idx, r_idx, v_idx):
         
+        print("MuRE::forward(): self.device: ", self.device)
+
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
         device = torch.device(self.device)                   # set runtime device (Chip Set)
         
         u = self.E.weight[u_idx].to(device)
@@ -183,7 +202,10 @@ class MuRE(torch.nn.Module):
 
     def one_shot_encoding(self, v_idx, r_idx):
         
+        print("MuRP::one_shot_encoding(): self.device: ", self.device)
+
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
         device = torch.device(self.device)                   # set runtime device (Chip Set)
         
         v = self.E.weight[v_idx].to(device)
@@ -196,9 +218,12 @@ class MuRE(torch.nn.Module):
 
     def one_shot_encoding_avg(self, v_idx):
         
+        print("MuRP::one_shot_encoding_avg(): self.device: ", self.device)
+
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-        device = torch.device(self.device)                   # set runtime device (Chip Set)
+
+        device = torch.device(self.device)              # set runtime device (Chip Set)
         
         v = self.E.weight[v_idx].to(device)
-        # return the average v vector from all the terms in the definition
-        return torch.mean(v, 1)
+        
+        return torch.mean(v, 1)                         # return the average v vector from all the terms in the definition
