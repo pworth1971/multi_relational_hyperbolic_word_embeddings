@@ -167,6 +167,8 @@ models/.DS_Store
 models/distill_bert/.DS_Store
 models/distill_bert/model/pytorch_model.bin
 data/outputs/
+.run.cuda.out.swp
+
 definitions_learning/models/.DS_Store
 definitions_learning/.DS_Store
 .DS_Store

@@ -1,0 +1,98 @@
+Command Line Arguments:
+Dataset: cpae
+Model: poincare
+Number of Iterations: 4
+Batch Size: 128
+Number of Negative Samples: 50
+Learning Rate: 50.0
+Embedding Dimensionality: 300
+Device: cuda
+
+------ ... executing experiment ... ------
+
+----------------------- Environment variables -----------------------
+environ({'CUDA_VISIBLE_DEVICES': '0,1,2,3', 'SHELL': '/bin/bash', 'NV_LIBCUBLAS_VERSION': '12.3.4.1-1', 'NVIDIA_VISIBLE_DEVICES': '0,1,2,3', 'COLORTERM': 'truecolor', 'NV_NVML_DEV_VERSION': '12.3.101-1', 'SOURCE': '', 'USER_ID': 'peterworthjr@gmail.com', 'TERM_PROGRAM_VERSION': '1.88.1', 'NV_LIBNCCL_DEV_PACKAGE': 'libnccl-dev=2.19.3-1+cuda12.3', 'NV_LIBNCCL_DEV_PACKAGE_VERSION': '2.19.3-1', 'BASE_URL': '011', 'HOSTNAME': 'bf8c7aaafb30', 'PYTHON_VERSION': '3.10', 'NVIDIA_REQUIRE_CUDA': 'cuda>=12.3 brand=tesla,driver>=470,driver<471 brand=unknown,driver>=470,driver<471 brand=nvidia,driver>=470,driver<471 brand=nvidiartx,driver>=470,driver<471 brand=geforce,driver>=470,driver<471 brand=geforcertx,driver>=470,driver<471 brand=quadro,driver>=470,driver<471 brand=quadrortx,driver>=470,driver<471 brand=titan,driver>=470,driver<471 brand=titanrtx,driver>=470,driver<471 brand=tesla,driver>=525,driver<526 brand=unknown,driver>=525,driver<526 brand=nvidia,driver>=525,driver<526 brand=nvidiartx,driver>=525,driver<526 brand=geforce,driver>=525,driver<526 brand=geforcertx,driver>=525,driver<526 brand=quadro,driver>=525,driver<526 brand=quadrortx,driver>=525,driver<526 brand=titan,driver>=525,driver<526 brand=titanrtx,driver>=525,driver<526 brand=tesla,driver>=535,driver<536 brand=unknown,driver>=535,driver<536 brand=nvidia,driver>=535,driver<536 brand=nvidiartx,driver>=535,driver<536 brand=geforce,driver>=535,driver<536 brand=geforcertx,driver>=535,driver<536 brand=quadro,driver>=535,driver<536 brand=quadrortx,driver>=535,driver<536 brand=titan,driver>=535,driver<536 brand=titanrtx,driver>=535,driver<536', 'NV_LIBCUBLAS_DEV_PACKAGE': 'libcublas-dev-12-3=12.3.4.1-1', 'NV_NVTX_VERSION': '12.3.101-1', 'NV_CUDA_CUDART_DEV_VERSION': '12.3.101-1', 'NV_LIBCUSPARSE_VERSION': '12.2.0.103-1', 'NV_LIBNPP_VERSION': '12.2.3.2-1', 'NCCL_VERSION': '2.19.3-1', 'VSCODE_PROXY_URI': 'https://bf8c7aaafb300.notebooksk.jarvislabs.net/proxy/{{port}}/', 'PWD': '/home/.ipython/multi_relational_hyperbolic_word_embeddings', 'SSH_KEY': 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDOZ5oI4nj7c6Is5fDMBVbNAZnOYnM7aH45VE2oCytWmH1aViDVZbi3iCq65hkASvkTo/wzRaLmWke4uO/HFcD5N1tqOS8cBZTYGp8jtKRlH/8S3nGcYMuW3xKBkTNmgcr6xfk9dIRIB5/HI7QGQEK/XGdImWKwV5BdlgOOx1GSpF/VcElGZG9LX9HJQyfVvhmysf+a4hongY9T5zqzzfTMd0Kod7te1rz2r0hRxpNtarvjrbJCCuDW82mZNqdiFb6DMWQyJI7w+KovXkEtxTiAH1pEWVdweYJ/89Nh/uPNRo27Xivg48myOoPGPLl9GiLAyP+70ierttS0vazmFOu8Jdgr4rR4EQUPS4orU4To3tveEt0le8pDaffsRu1H/AzYZC1szYzLEYDg88G+4tHJBGjJn92snHbGlRgyligoi36/XM//RuyV7Gq5YmfOiPSdf3y7/MnMra8WQq+279f6h4V9JGWCzdomgKxfGa+3AJyO2n8j9J5DmjNuAspdu+GaRF1mcEyersK45aXtJxMIo3R9pcI9OncZDywJqLa+6LJ7OFdO1fRw943MiSj34iF60kempqMVkevkwxSBtobu40SpXZzaici5PbYr365yAaE7G9mC0OSLL7IBbUYIQB3zvkEfv02KpHHqF1N7cgY4/ENqswpSYGtrlJBXV9cNpw== root@be3556ee7db1\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC+5cNDzpkHmG2bkr39nOP63Bz/LBnfIb1csyQLzsrtEGyyY/V0IgT92g1AoeHBh3/fIDzX+Nezg1jOVt5LTwbxp/9VLe9ZTYxzhgeTqFd7JaC1h1nmc7FBzg4i+eHLd1VjVmak1NQ8o8RrOpmKiCSFTZPhFQLy9IK915+Ae41KIMyPKcx0VWQ5pqzbaW0JCo0Koqdw2D86XHj0Rp67LwZzHU+0uLeYgYWBZ2A2Yel+FNUnc3RPBSX/5u088k6NP589IO46T2uUWHQNEbLvcjsIs7d1u3z+z+4C51ChnuM1VUOTgqhZMPrNlcSYxyiy5wTWPN2nJagzbH17b8D7gEohOvQds7mcQg+ovfG1p0JqFHGTOmwQ6CO/bOATrSB0M77AGbe9JwHF6BAE3j31HTkhzgFMJfSJOdSbwa7fT6F1YshKq/pVlbl+yfqiASqdssKLuwK6STfT/Dlrcmq5LV7HtG+oPg4eOOrRHUoT0SWd242tZL7ULOxMIFK7JkdCAQah/Ei6F6WkYrM3CHelS0X+YTLmrVYSJAmYgUxXUi0XDTmNpHVS1ueiUwK9lcRohAZYEYHpnLloL4HIEh22oci8tPazf+rt2QUtJIz8476NiwKEx2E+CSjUfOZuLMkWSVha0AXVytWoa1Urky6oLx6+fgJGdeTgr8nhD2Ihm2pYTQ== root@0e3b0ca3f336', 'NVIDIA_DRIVER_CAPABILITIES': 'compute,utility', 'NV_NVPROF_DEV_PACKAGE': 'cuda-nvprof-12-3=12.3.101-1', 'NV_LIBNPP_PACKAGE': 'libnpp-12-3=12.2.3.2-1', 'NV_LIBNCCL_DEV_PACKAGE_NAME': 'libnccl-dev', '_': '/root/miniconda3/envs/py3.10/bin/python', 'TZ': 'UTC', 'VSCODE_GIT_ASKPASS_NODE': '/usr/lib/code-server/lib/node', 'NV_LIBCUBLAS_DEV_VERSION': '12.3.4.1-1', 'NVIDIA_PRODUCT_NAME': 'CUDA', 'NV_LIBCUBLAS_DEV_PACKAGE_NAME': 'libcublas-dev-12-3', 'NV_CUDA_CUDART_VERSION': '12.3.101-1', 'HOME': '/home', 'LANG': 'en_US.UTF-8', 'CUDA_VERSION': '12.3.1', 'NV_LIBCUBLAS_PACKAGE': 'libcublas-12-3=12.3.4.1-1', 'GRADIO_SERVER_NAME': '0.0.0.0', 'NV_CUDA_NSIGHT_COMPUTE_DEV_PACKAGE': 'cuda-nsight-compute-12-3=12.3.1-1', 'DNS': 'https://notebooksk.jarvislabs.net', 'GIT_ASKPASS': '/usr/lib/code-server/lib/vscode/extensions/git/dist/askpass.sh', 'NV_LIBNPP_DEV_PACKAGE': 'libnpp-dev-12-3=12.2.3.2-1', 'NV_LIBCUBLAS_PACKAGE_NAME': 'libcublas-12-3', 'NV_LIBNPP_DEV_VERSION': '12.2.3.2-1', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'TOKEN': '2exduKAwyu9RPy_lvGSzVIJPAaIqEq_Jxokw92tS0k1VqU5NhUZEuZ6GGjWE6qtN', 'STREAMLIT_SERVER_PORT': '6006', 'TERM': 'xterm-256color', 'NV_LIBCUSPARSE_DEV_VERSION': '12.2.0.103-1', 'LIBRARY_PATH': '/usr/local/cuda/lib64/stubs', 'VSCODE_GIT_IPC_HANDLE': '/tmp/vscode-git-c3b55c7d65.sock', 'MACHINE_ID': '182962', 'SHLVL': '2', 'NV_CUDA_LIB_VERSION': '12.3.1-1', 'NVARCH': 'x86_64', 'ROOT_PATH': '/2exduKAwyu9RPy_lvGSzVIJPAaIqEq_Jxokw92tS0k1VqU5NhUZEuZ6GGjWE6qtN', 'NV_CUDA_COMPAT_PACKAGE': 'cuda-compat-12-3', 'NV_LIBNCCL_PACKAGE': 'libnccl2=2.19.3-1+cuda12.3', 'LD_LIBRARY_PATH': '/usr/local/nvidia/lib:/usr/local/nvidia/lib64', 'NV_CUDA_NSIGHT_COMPUTE_VERSION': '12.3.1-1', 'NV_NVPROF_VERSION': '12.3.101-1', 'VSCODE_GIT_ASKPASS_MAIN': '/usr/lib/code-server/lib/vscode/extensions/git/dist/askpass-main.js', 'BROWSER': '/usr/lib/code-server/lib/vscode/bin/helpers/browser.sh', 'PATH': '/usr/lib/code-server/lib/vscode/bin/remote-cli:/root/miniconda3/envs/py3.10/bin:/root/miniconda3/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'NODE_EXEC_PATH': '/usr/lib/code-server/lib/node', 'NV_LIBNCCL_PACKAGE_NAME': 'libnccl2', 'NV_LIBNCCL_PACKAGE_VERSION': '2.19.3-1', 'GRADIO_SERVER_PORT': '6006', 'DEBIAN_FRONTEND': 'noninteractive', 'OLDPWD': '/home/.ipython/multi_relational_hyperbolic_word_embeddings/bin', 'MACHINE_NAME': 'hyperbolic-embeddings', 'TERM_PROGRAM': 'vscode', 'VSCODE_IPC_HOOK_CLI': '/tmp/vscode-ipc-75e56c63-c7a1-43f7-a981-22ee8a015dbf.sock', 'LC_CTYPE': 'C.UTF-8', 'KMP_DUPLICATE_LIB_OK': 'True', 'KMP_INIT_AT_FORK': 'FALSE'})
+---------------------------------------------------------------------
+
+Sun Jun 23 00:10:37 2024
+
+-------------------- Experiment Object Params --------------------
+model_type: poincare
+dataset: cpae
+learning_rate: 50.0
+dim: 300
+nneg: 50
+num_iterations: 4
+batch_size: 128
+device_type: cuda
+cuda: True
+mps: False
+cpu: False
+-------------------------------------------------------------
+Training the poincare multi-relational model...
+device_type: cuda
+
+----------------------- CUDA INFO -----------------------
+CUDA Available: True
+CUDA Version: 12.1
+Number of GPUs: 4
+Current Device: 0
+----------------------------------------------------------
+
+Number of training data points: 2659886
+
+Setting up GPU parallelism...
+Number of GPUs: 4
+MuRP::device: cuda
+
+
+Starting training...
+Sun Jun 23 00:10:45 2024
+
+--------------------------------------------------------------------------------------
+***** Iteration: 1 *****
+Loss: 0.0807308703660965
+______________________________________________________________________________________
+...Starting evaluation...
+Saving the embeddings for evaluation...
+SimVerb3500-dev 0.013829335191815258
+MEN-dev 0.13601659051533063
+Evaluation score: 0.07492296285357294
+New best model, saving the embeddings...
+Sun Jun 23 00:23:45 2024
+
+--------------------------------------------------------------------------------------
+***** Iteration: 2 *****
+Loss: 0.059544939547777176
+______________________________________________________________________________________
+...Starting evaluation...
+Saving the embeddings for evaluation...
+SimVerb3500-dev 0.052269567680691575
+MEN-dev 0.24184510312295907
+Evaluation score: 0.1470573354018253
+New best model, saving the embeddings...
+Sun Jun 23 00:36:10 2024
+
+--------------------------------------------------------------------------------------
+***** Iteration: 3 *****
+Loss: 0.051061876118183136
+______________________________________________________________________________________
+...Starting evaluation...
+Saving the embeddings for evaluation...
+SimVerb3500-dev 0.12332482247942148
+MEN-dev 0.31424172669517886
+Evaluation score: 0.21878327458730018
+New best model, saving the embeddings...
+Sun Jun 23 00:48:39 2024
+
+--------------------------------------------------------------------------------------
+***** Iteration: 4 *****
+Loss: 0.04556439444422722
+______________________________________________________________________________________
+...Starting evaluation...
+Saving the embeddings for evaluation...
+SimVerb3500-dev 0.15146108165180497
+MEN-dev 0.38400977891556504
+Evaluation score: 0.267735430283685
+New best model, saving the embeddings...
+Sun Jun 23 01:00:58 2024

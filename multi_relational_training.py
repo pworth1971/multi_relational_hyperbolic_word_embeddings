@@ -4,21 +4,27 @@ import numpy as np
 import torch
 import pickle
 import time
+
 from collections import defaultdict
+
 from dynaconf import settings
+
 from definitions_learning.models.multi_relational.load_data import Data
 from definitions_learning.models.multi_relational.model import *
 from definitions_learning.models.multi_relational.rsgd import *
+
 from web.embeddings import load_embedding
 from web.evaluate import evaluate_similarity
 from web.evaluate import evaluate_similarity_hyperbolic
 from web.datasets.similarity import fetch_MEN, fetch_SimVerb3500
+
 from tqdm import tqdm
 from six import iteritems
 
 import argparse
 
-    
+import pycuda.driver as cuda
+
 #
 # modified from original to support MPS, Apple silicon
 #
@@ -58,6 +64,8 @@ class Experiment:
             'MEN-dev': fetch_MEN(which = "dev"),
         }
 
+        print(time.ctime())
+
         # print params
         print()
         print("-------------------- Experiment Object Params --------------------")
@@ -74,16 +82,19 @@ class Experiment:
         print("cpu: " + str(self.cpu))
         print("-------------------------------------------------------------")
     
+
     def get_data_idxs(self, data):
         data_idxs = [(self.entity_idxs[data[i][0]], self.relation_idxs[data[i][1]], \
                       self.entity_idxs[data[i][2]]) for i in range(len(data))]
         return data_idxs
     
+
     def get_er_vocab(self, data, idxs=[0, 1, 2]):
         er_vocab = defaultdict(list)
         for triple in data:
             er_vocab[(triple[idxs[0]], triple[idxs[1]])].append(triple[idxs[2]])
         return er_vocab
+
 
     def evaluate(self, model, embeddings_path, embeddings_type = "poincare"):
         #Load embeddings
@@ -104,7 +115,9 @@ class Experiment:
         return np.mean(sp_correlations)
 
 
+
     def train_and_eval(self):
+
         print(f"Training the {self.model_type} multi-relational model...")
         print("device_type: " + str(self.device_type))
 
@@ -114,6 +127,15 @@ class Experiment:
         #device = "cuda" if self.cuda else "mps" if torch.backends.mps.is_available() else "cpu"
         device = self.device_type                 # set runtime device (Chip Set)    
 
+        print()
+        print('----------------------- CUDA INFO -----------------------')
+        print("CUDA Available:", torch.cuda.is_available())
+        print("CUDA Version:", torch.version.cuda)
+        print("Number of GPUs:", torch.cuda.device_count())
+        print("Current Device:", torch.cuda.current_device())
+        print('----------------------------------------------------------')
+        print()
+    
         train_data_idxs = self.get_data_idxs(d.train_data)
         print(f"Number of training data points: {len(train_data_idxs)}")
 
@@ -125,15 +147,23 @@ class Experiment:
         param_names = [name for name, param in model.named_parameters()]
         opt = RiemannianSGD(model.parameters(), lr=self.learning_rate, param_names=param_names)
 
-        # note does not appear to support mps, Apple silicon
+        #
+        # note model object does not appear 
+        # to support mps, Apple silicon
+        #
+
+        # Move the model to GPU
         if self.cuda:
+            model = torch.nn.DataParallel(model)
             model.cuda()
         elif self.cpu:
             model.cpu()
 
-        # Move the model to the appropriate device
-        model.to(device)
+        #model.to(device)                # Move the model to the appropriate device
         
+        #runtime_device = next(model.parameters()).device
+        #print("Model is on device:", runtime_device)
+
         train_data_idxs_tensor = torch.tensor(train_data_idxs, device=device)
         entity_idxs_lst = list(self.entity_idxs.values())
         negsamples_tbl = torch.tensor(
@@ -145,10 +175,13 @@ class Experiment:
         print("Starting training...")
 
         for it in tqdm(range(1, self.num_iterations + 1)):
+            
+            start_time = time.ctime()
+            print(start_time)
 
             print()
             print('--------------------------------------------------------------------------------------')
-            print(f"Iteration: {it}")
+            print(f"***** Iteration: {it} *****")
         
             model.train()
             losses = torch.zeros((len(train_data_idxs) // self.batch_size) + 1, device=device)
@@ -168,28 +201,31 @@ class Experiment:
 
                 opt.zero_grad()
                 predictions = model(e1_idx, r_idx, e2_idx)
-                loss = model.loss(predictions, targets)
+                loss = model.module.loss(predictions, targets)
+                #loss = model.loss(predictions, targets)
                 loss.backward()
                 opt.step()
                 losses[batch_cnt] = loss.detach()
                 batch_cnt += 1
 
             print(f"Loss: {torch.mean(losses).item()}")
-            print("______________________________________________________________________________________")
 
+            #
             # Start evaluation
-            print("Starting evaluation...")
-
+            #
             model.eval()
             with torch.no_grad():
+
                 # Saving the embeddings as a dictionary
                 print("Saving the embeddings for evaluation...")
                 embeddings_dict = {}
                 for entity in tqdm(self.entity_idxs):
                     if self.model_type == "poincare":
-                        embeddings_dict[entity] = model.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        #embeddings_dict[entity] = model.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        embeddings_dict[entity] = model.module.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
                     else:
-                        embeddings_dict[entity] = model.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        #embeddings_dict[entity] = model.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        embeddings_dict[entity] = model.module.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
 
                 out_emb_path = os.path.join(settings["output_path"], "embeddings")
                 out_model_path = os.path.join(settings["output_path"], "models")
@@ -214,6 +250,10 @@ class Experiment:
                         "loss": losses,
                     }, os.path.join(out_model_path, f"best_model_checkpoint_{self.model_type}_{self.dim}_{self.dataset}.pt"))
 
+        iteration_end = time.time()
+
+        end_time = time.ctime()
+        print(end_time)
 
 #
 # pjw updates:
@@ -261,6 +301,12 @@ if __name__ == '__main__':
     
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+
+    print()
+    print('----------------------- Environment variables -----------------------')
+    print(os.environ)
+    print('---------------------------------------------------------------------')
+    print()
     
     d = Data(data_dir=data_dir)
 
