@@ -23,7 +23,14 @@ from six import iteritems
 
 import argparse
 
-import pycuda.driver as cuda
+import platform
+
+"""
+if platform.system() == 'Linux':
+    # Import Linux-specific modules
+    import pycuda.driver as cuda
+#elif platform.system() == 'Darwin':    # Import MacOS-specific modules
+"""
 
 #
 # modified from original to support MPS, Apple silicon
@@ -127,14 +134,15 @@ class Experiment:
         #device = "cuda" if self.cuda else "mps" if torch.backends.mps.is_available() else "cpu"
         device = self.device_type                 # set runtime device (Chip Set)    
 
-        print()
-        print('----------------------- CUDA INFO -----------------------')
-        print("CUDA Available:", torch.cuda.is_available())
-        print("CUDA Version:", torch.version.cuda)
-        print("Number of GPUs:", torch.cuda.device_count())
-        print("Current Device:", torch.cuda.current_device())
-        print('----------------------------------------------------------')
-        print()
+        if torch.cuda.is_available():
+            print()
+            print('----------------------- CUDA INFO -----------------------')
+            print("CUDA Available:", torch.cuda.is_available())
+            print("CUDA Version:", torch.version.cuda)
+            print("Number of GPUs:", torch.cuda.device_count())
+            print("Current Device:", torch.cuda.current_device())
+            print('----------------------------------------------------------')
+            print()
     
         train_data_idxs = self.get_data_idxs(d.train_data)
         print(f"Number of training data points: {len(train_data_idxs)}")
@@ -153,7 +161,7 @@ class Experiment:
         #
 
         # Move the model to GPU
-        if self.cuda:
+        if torch.cuda.is_available():
             model = torch.nn.DataParallel(model)
             model.cuda()
         elif self.cpu:
@@ -201,8 +209,12 @@ class Experiment:
 
                 opt.zero_grad()
                 predictions = model(e1_idx, r_idx, e2_idx)
-                loss = model.module.loss(predictions, targets)
-                #loss = model.loss(predictions, targets)
+
+                if torch.cuda.is_available():
+                    loss = model.module.loss(predictions, targets)
+                else:
+                    loss = model.loss(predictions, targets)
+                
                 loss.backward()
                 opt.step()
                 losses[batch_cnt] = loss.detach()
@@ -219,13 +231,19 @@ class Experiment:
                 # Saving the embeddings as a dictionary
                 print("Saving the embeddings for evaluation...")
                 embeddings_dict = {}
+                
                 for entity in tqdm(self.entity_idxs):
+
                     if self.model_type == "poincare":
-                        #embeddings_dict[entity] = model.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
-                        embeddings_dict[entity] = model.module.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        if torch.cuda.is_available():
+                            embeddings_dict[entity] = model.module.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        else:
+                            embeddings_dict[entity] = model.Eh.weight[self.entity_idxs[entity]].detach().cpu().numpy()
                     else:
-                        #embeddings_dict[entity] = model.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
-                        embeddings_dict[entity] = model.module.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        if torch.cuda.is_available():
+                            embeddings_dict[entity] = model.module.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
+                        else:
+                            embeddings_dict[entity] = model.E.weight[self.entity_idxs[entity]].detach().cpu().numpy()
 
                 out_emb_path = os.path.join(settings["output_path"], "embeddings")
                 out_model_path = os.path.join(settings["output_path"], "models")

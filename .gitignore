@@ -172,3 +172,5 @@ data/outputs/
 definitions_learning/models/.DS_Store
 definitions_learning/.DS_Store
 .DS_Store
+.run.mps.out.swp
+run.mps.out

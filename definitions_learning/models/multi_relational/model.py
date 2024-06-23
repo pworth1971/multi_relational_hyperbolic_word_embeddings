@@ -1,6 +1,12 @@
 import numpy as np
 import torch
-import pycuda.driver as cuda
+
+import platform
+
+if platform.system() == 'Linux':
+    # Import Linux-specific modules
+    import pycuda.driver as cuda
+
 from torch import Tensor
 from definitions_learning.models.multi_relational.utils import *
 #from web.evaluate import poincare_distance
@@ -28,10 +34,10 @@ class MuRP(torch.nn.Module):
 
         super(MuRP, self).__init__()
         
-        print()
-        print("Setting up GPU parallelism...")
-        cuda.init()
-        print("Number of GPUs:", cuda.Device.count())
+        if platform.system() == 'Linux':
+            print("Setting up GPU parallelism...")
+            cuda.init()
+            print("Number of GPUs:", cuda.Device.count())
 
         # set runtime device (Chip Set)
         if torch.cuda.is_available():
