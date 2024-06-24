@@ -8,3 +8,4 @@ transformers
 tqdm
 pandas
 python-json-logger
+matplotlib

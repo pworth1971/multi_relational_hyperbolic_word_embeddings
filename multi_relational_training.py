@@ -14,8 +14,10 @@ from definitions_learning.models.multi_relational.model import *
 from definitions_learning.models.multi_relational.rsgd import *
 
 from web.embeddings import load_embedding
+
 from web.evaluate import evaluate_similarity
 from web.evaluate import evaluate_similarity_hyperbolic
+
 from web.datasets.similarity import fetch_MEN, fetch_SimVerb3500
 
 from tqdm import tqdm
@@ -23,14 +25,14 @@ from six import iteritems
 
 import argparse
 
-import platform
 
-"""
-if platform.system() == 'Linux':
-    # Import Linux-specific modules
-    import pycuda.driver as cuda
-#elif platform.system() == 'Darwin':    # Import MacOS-specific modules
-"""
+#
+# pjw additions
+#
+import platform
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 #
 # modified from original to support MPS, Apple silicon
@@ -118,11 +120,16 @@ class Experiment:
                 score = evaluate_similarity(embeddings, examples.X, examples.y)
                 print(name, score)
                 sp_correlations.append(score)
-        #return average score
-        return np.mean(sp_correlations)
+        
+        return np.mean(sp_correlations)         #return average score
 
 
 
+    # ------------------------------------------------------------------------------------------------
+    # Experiment::train_and_eval():
+    #
+    # train and evaluate the model
+    #  
     def train_and_eval(self):
 
         print(f"Training the {self.model_type} multi-relational model...")
@@ -131,9 +138,9 @@ class Experiment:
         self.entity_idxs = {d.entities[i]: i for i in range(len(d.entities))}
         self.relation_idxs = {d.relations[i]: i for i in range(len(d.relations))}
 
-        #device = "cuda" if self.cuda else "mps" if torch.backends.mps.is_available() else "cpu"
         device = self.device_type                 # set runtime device (Chip Set)    
 
+        # print CUDA info if available
         if torch.cuda.is_available():
             print()
             print('----------------------- CUDA INFO -----------------------')
@@ -147,6 +154,7 @@ class Experiment:
         train_data_idxs = self.get_data_idxs(d.train_data)
         print(f"Number of training data points: {len(train_data_idxs)}")
 
+        # instantiate the pytorch jit model
         if self.model_type == "poincare":
             model = torch.jit.script(MuRP(d, self.dim))
         else:
@@ -160,24 +168,22 @@ class Experiment:
         # to support mps, Apple silicon
         #
 
-        # Move the model to GPU
+        # Move the model to GPU as available
         if torch.cuda.is_available():
             model = torch.nn.DataParallel(model)
             model.cuda()
         elif self.cpu:
             model.cpu()
 
-        #model.to(device)                # Move the model to the appropriate device
-        
-        #runtime_device = next(model.parameters()).device
-        #print("Model is on device:", runtime_device)
-
         train_data_idxs_tensor = torch.tensor(train_data_idxs, device=device)
         entity_idxs_lst = list(self.entity_idxs.values())
+
         negsamples_tbl = torch.tensor(
             np.random.choice(entity_idxs_lst, size=(len(train_data_idxs) // self.batch_size, self.batch_size, self.nneg)),
             device=device
         )
+
+        self.loss_history = []  # Initialize loss history
 
         print()
         print("Starting training...")
@@ -220,7 +226,9 @@ class Experiment:
                 losses[batch_cnt] = loss.detach()
                 batch_cnt += 1
 
-            print(f"Loss: {torch.mean(losses).item()}")
+            mean_loss = torch.mean(losses).item()
+            self.loss_history.append(mean_loss)                 # Store mean loss per iteration
+            print(f"Loss: {mean_loss}")
 
             #
             # Start evaluation
@@ -254,12 +262,18 @@ class Experiment:
                 pickle.dump(embeddings_dict, open(outfile_path, "wb"))
                 score = self.evaluate(model, outfile_path, self.model_type)
                 print(f"Evaluation score: {score}")
-                if score > self.best_eval_score:
-                    # Saving the embeddings of the best model
+                
+
+                #
+                # if the model is the best, save it and store info
+                #
+                if score > self.best_eval_score:                                           
+                    
                     print("New best model, saving the embeddings...")
                     outfile_path = os.path.join(out_emb_path, f"best_model_dict_{self.model_type}_{self.dim}_{self.dataset}")
                     pickle.dump(embeddings_dict, open(outfile_path, "wb"))
                     self.best_eval_score = score
+                    
                     # Saving checkpoint for the best model
                     torch.save({
                         "epoch": it,
@@ -272,6 +286,18 @@ class Experiment:
 
         end_time = time.ctime()
         print(end_time)
+
+        # Plotting after training
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.loss_history, label='Training Loss')
+        plt.title('Training Loss Per Iteration')
+        plt.xlabel('Iterations')
+        plt.ylabel('Loss')
+        plt.legend()
+
+        plt.savefig('output/plot.png')
+
+        #plt.show()
 
 #
 # pjw updates:
