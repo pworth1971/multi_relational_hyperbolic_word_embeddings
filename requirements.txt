@@ -9,3 +9,8 @@ tqdm
 pandas
 python-json-logger
 matplotlib
+datasets
+sentencepiece
+accelerate
+seaborn
+torch

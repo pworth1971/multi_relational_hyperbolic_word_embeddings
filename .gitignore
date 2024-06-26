@@ -159,18 +159,19 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+#
 # PJW_ADDs
-# embeddings and binaries
-data/outputs/.DS_Store
+# embeddings and binaries, output & test results
+#
 data/.DS_Store
 models/.DS_Store
 models/distill_bert/.DS_Store
 models/distill_bert/model/pytorch_model.bin
 data/outputs/
-.run.cuda.out.swp
-
 definitions_learning/models/.DS_Store
 definitions_learning/.DS_Store
+.run.cuda.out.swp
 .DS_Store
 .run.mps.out.swp
 run.mps.out
+/results/
