@@ -161,11 +161,9 @@ class MuRP(torch.nn.Module):
 # relational data structure.
 #   
 class MuRE(torch.nn.Module):
+    
     def __init__(self, d, dim):
         super(MuRE, self).__init__()
-        
-        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-        #device = torch.device(device)           # set runtime device (Chip Set)
         
         # set runtime device (Chip Set)
         if torch.backends.cuda.is_built():
@@ -190,16 +188,14 @@ class MuRE(torch.nn.Module):
        
     def forward(self, u_idx, r_idx, v_idx):
         
-        print("MuRE::forward(): self.device: ", self.device)
+        #print("MuRE::forward(): self.device: ", self.device)
 
-        #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-
-        device = torch.device(self.device)                   # set runtime device (Chip Set)
+        #device = torch.device(self.device)                   # set runtime device (Chip Set)
         
-        u = self.E.weight[u_idx].to(device)
-        v = self.E.weight[v_idx].to(device)
-        Ru = self.Wu[r_idx].to(device)
-        rv = self.rv.weight[r_idx].to(device)
+        u = self.E.weight[u_idx].to(self.device)
+        v = self.E.weight[v_idx].to(self.device)
+        Ru = self.Wu[r_idx].to(self.device)
+        rv = self.rv.weight[r_idx].to(self.device)
         
         u_W = u * Ru
 
@@ -208,15 +204,15 @@ class MuRE(torch.nn.Module):
 
     def one_shot_encoding(self, v_idx, r_idx):
         
-        print("MuRP::one_shot_encoding(): self.device: ", self.device)
+        #print("MuRP::one_shot_encoding(): self.device: ", self.device)
 
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
-        device = torch.device(self.device)                   # set runtime device (Chip Set)
+        #device = torch.device(self.device)                   # set runtime device (Chip Set)
         
-        v = self.E.weight[v_idx].to(device)
-        Ru = self.Wu[r_idx].to(device)
-        rv = self.rv.weight[r_idx].to(device)
+        v = self.E.weight[v_idx].to(self.device)
+        Ru = self.Wu[r_idx].to(self.device)
+        rv = self.rv.weight[r_idx].to(self.device)
         
         u_W = torch.mean(v, 1) + torch.mean(rv, 1)
         
@@ -228,8 +224,8 @@ class MuRE(torch.nn.Module):
 
         #device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
-        device = torch.device(self.device)              # set runtime device (Chip Set)
+        #device = torch.device(self.device)              # set runtime device (Chip Set)
         
-        v = self.E.weight[v_idx].to(device)
+        v = self.E.weight[v_idx].to(self.device)
         
         return torch.mean(v, 1)                         # return the average v vector from all the terms in the definition

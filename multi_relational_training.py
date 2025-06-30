@@ -18,7 +18,7 @@ from web.embeddings import load_embedding
 from web.evaluate import evaluate_similarity
 from web.evaluate import evaluate_similarity_hyperbolic
 
-from web.datasets.similarity import fetch_MEN, fetch_SimVerb3500
+from web.datasets.similarity import fetch_MEN, fetch_SimVerb3500_New
 
 from tqdm import tqdm
 from six import iteritems
@@ -69,7 +69,8 @@ class Experiment:
 
         self.best_eval_score = 0.0
         self.tasks = {
-            'SimVerb3500-dev': fetch_SimVerb3500(which='dev'), 
+#            'SimVerb3500-dev': fetch_SimVerb3500(which='dev'),
+            'SimVerb3500-dev': fetch_SimVerb3500_New(which='dev'), 
             'MEN-dev': fetch_MEN(which = "dev"),
         }
 
@@ -158,7 +159,7 @@ class Experiment:
         if self.model_type == "poincare":
             model = torch.jit.script(MuRP(d, self.dim))
         else:
-            model = torch.jit.script(MuRE(d, self.dim, device=device))
+            model = torch.jit.script(MuRE(d, self.dim))
         
         param_names = [name for name, param in model.named_parameters()]
         opt = RiemannianSGD(model.parameters(), lr=self.learning_rate, param_names=param_names)
@@ -313,13 +314,18 @@ if __name__ == '__main__':
     parser.add_argument("--lr", type=float, default=50, nargs="?", help="Learning rate.")
     parser.add_argument("--dim", type=int, default=40, nargs="?", help="Embedding dimensionality.")
     
-    #parser.add_argument("--cuda", type=bool, default=False, nargs="?", help="Whether to use CUDA if available or CPU otherwise.")       # deprecated
-    #parser.add_argument("--mps", type=bool, default=False, nargs="?", help="Whether to use MPS if available or CPU otherwise.")
-
-    parser.add_argument("--device", type=str, default="cpu", nargs="?", help="MPS, CUDA, or CPU for PyTorch device type.")
-
     args = parser.parse_args()
 
+    # Auto-select the device
+    if torch.cuda.is_available():
+        selected_device = "cuda"
+    elif torch.backends.mps.is_available() and torch.backends.mps.is_built():
+        selected_device = "mps"
+    else:
+        selected_device = "cpu"
+
+    args.device = selected_device  # override args.device
+    
      # Print the parsed command line arguments
     print("Command Line Arguments:")
     print(f"Dataset: {args.dataset}")

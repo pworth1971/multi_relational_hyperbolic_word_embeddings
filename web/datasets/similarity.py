@@ -348,6 +348,7 @@ def fetch_TR9856():
 
     return Bunch(X=X.astype("object"), y=y, topic=topic)
 
+
 def fetch_SimVerb3500(which='all'):
     """
     Fetch SimVerb3500 dataset for testing verb similarity
@@ -373,6 +374,58 @@ def fetch_SimVerb3500(which='all'):
 
     data = _get_as_pd(url_map[which], which, header=None, sep=" ")
     return Bunch(X=data.values[:, 0:2].astype("object"), y=data.values[:, 2:].astype(float))
+
+
+
+
+def fetch_SimVerb3500_New(which='all'):
+    """
+    Fetch SimVerb3500 dataset from local directory and return word similarity pairs.
+
+    Parameters
+    ----------
+    which : str
+        One of ['all', 'dev', 'test'] indicating which split to load.
+
+    Returns
+    -------
+    data : sklearn.utils.Bunch
+        Dictionary-like object with keys:
+            'X' : ndarray of shape (n_samples, 2) with word pairs
+            'y' : ndarray of shape (n_samples,) with similarity scores
+    """
+
+    if which not in ['all', 'dev', 'test']:
+        raise RuntimeError("Not recognized 'which' parameter. Use 'all', 'dev', or 'test'.")
+
+    file_map = {
+        'all': 'SimVerb-3500.txt',
+        'dev': 'SimVerb-500-dev.txt',
+        'test': 'SimVerb-3000-test.txt'
+    }
+
+    base_path = '/Users/pietro/code/word2gm/evaluation_data/simverb/data'
+    full_path = os.path.join(base_path, file_map[which])
+
+    if not os.path.isfile(full_path):
+        raise FileNotFoundError(f"Expected file not found at {full_path}")
+
+    try:
+        # It's tab-separated with 6 columns, no header
+        data = pd.read_csv(full_path, sep='\t', header=None)
+    except Exception as e:
+        raise RuntimeError(f"Failed to parse the file: {full_path}\nError: {e}")
+
+    if data.shape[1] < 4:
+        raise ValueError(f"Expected at least 4 columns (word1, word2, POS, score), got {data.shape[1]} in file: {file_map[which]}")
+
+    return Bunch(
+        X=data.iloc[:, 0:2].values.astype("object"),
+        y=data.iloc[:, 3].values.astype(float)
+    )
+
+
+
 
 def fetch_SCWS():
     """
