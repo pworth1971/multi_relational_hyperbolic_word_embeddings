@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 class Experiment:
 
     def __init__(self, learning_rate=50, dim=40, nneg=50, model="poincare",
-                 num_iterations=500, batch_size=128, dataset="wiktionary", device_type='cpu'):
+                 num_iterations=500, batch_size=128, dataset="wiktionary", device_type='cpu', early_stopping=3):
         
         self.model_type = model
         self.dataset = dataset
@@ -50,6 +50,7 @@ class Experiment:
         self.num_iterations = num_iterations
         self.batch_size = batch_size
         self.device_type = device_type
+        self.early_stopping = early_stopping
 
         # set device type variables
         if device_type == "cuda": 
@@ -90,6 +91,7 @@ class Experiment:
         print("cuda: " + str(self.cuda))
         print("mps: " + str(self.mps))
         print("cpu: " + str(self.cpu))
+        print("early_stopping: " + str(self.early_stopping))
         print("-------------------------------------------------------------")
     
 
@@ -164,17 +166,12 @@ class Experiment:
         param_names = [name for name, param in model.named_parameters()]
         opt = RiemannianSGD(model.parameters(), lr=self.learning_rate, param_names=param_names)
 
-        #
-        # note model object does not appear 
-        # to support mps, Apple silicon
-        #
-
         # Move the model to GPU as available
         if torch.cuda.is_available():
             model = torch.nn.DataParallel(model)
             model.cuda()
-        elif self.cpu:
-            model.cpu()
+        else:
+            model.to(device)
 
         train_data_idxs_tensor = torch.tensor(train_data_idxs, device=device)
         entity_idxs_lst = list(self.entity_idxs.values())
@@ -260,10 +257,32 @@ class Experiment:
                 os.makedirs(out_emb_path, exist_ok=True)
                 os.makedirs(out_model_path, exist_ok=True)
 
+                # Save .pkl
                 pickle.dump(embeddings_dict, open(outfile_path, "wb"))
+
+                # Save .vec
+                vec_file = outfile_path + ".vec"
+                with open(vec_file, "w") as fvec:
+                    dim = len(next(iter(embeddings_dict.values())))
+                    fvec.write(f"{len(embeddings_dict)} {dim}\n")
+                    for word, vector in embeddings_dict.items():
+                        vector_str = " ".join([f"{x:.6f}" for x in vector])
+                        fvec.write(f"{word} {vector_str}\n")
+
                 score = self.evaluate(model, outfile_path, self.model_type)
                 print(f"Evaluation score: {score}")
                 
+                # Early stopping logic
+                improvement = (score - self.best_eval_score) / max(self.best_eval_score, 1e-8) * 100
+                if improvement < 0.01:
+                    self.no_improvement_count += 1
+                    print(f"No significant improvement ({improvement:.5f}%), count = {self.no_improvement_count}")
+                else:
+                    self.no_improvement_count = 0
+
+                if self.no_improvement_count >= self.early_stopping:
+                    print(f'Early stopping triggered: no significant improvement in last {self.early_stopping} evaluations.')
+                    break
 
                 #
                 # if the model is the best, save it and store info
@@ -271,8 +290,20 @@ class Experiment:
                 if score > self.best_eval_score:                                           
                     
                     print("New best model, saving the embeddings...")
-                    outfile_path = os.path.join(out_emb_path, f"best_model_dict_{self.model_type}_{self.dim}_{self.dataset}")
-                    pickle.dump(embeddings_dict, open(outfile_path, "wb"))
+                    best_outfile_path = os.path.join(out_emb_path, f"best_model_dict_{self.model_type}_{self.dim}_{self.dataset}")
+
+                    # Save best .pkl
+                    pickle.dump(embeddings_dict, open(best_outfile_path, "wb"))
+                    
+                    # Save best .vec
+                    best_vec_file = best_outfile_path + ".vec"
+                    with open(best_vec_file, "w") as fvec:
+                        dim = len(next(iter(embeddings_dict.values())))
+                        fvec.write(f"{len(embeddings_dict)} {dim}\n")
+                        for word, vector in embeddings_dict.items():
+                            vector_str = " ".join([f"{x:.6f}" for x in vector])
+                            fvec.write(f"{word} {vector_str}\n")
+                            
                     self.best_eval_score = score
                     
                     # Saving checkpoint for the best model
@@ -298,7 +329,7 @@ class Experiment:
 
         plt.savefig('output/plot.png')
 
-        #plt.show()
+        plt.show()
 
 #
 # pjw updates:
